@@ -38,32 +38,67 @@ function StaffModal({ data = {}, onClose, refresh }) {
         ? Yup.string().required('Password is required')
         : Yup.string(),
     }),
-    onSubmit: async (values) => {
-      const payload = {
-        ...values,
-        permissions: values.permissions.map((p) => {
-          const [module, action] = p.split(':');
-          return { module, action };
-        }),
-      };
+    // onSubmit: async (values) => {
+    //   const payload = {
+    //     ...values,
+    //     permissions: values.permissions.map((p) => {
+    //       const [module, action] = p.split(':');
+    //       return { module, action };
+    //     }),
+    //   };
 
-      try {
-        if (data._id) {
-          await updateStaffAPI(data._id, payload);
-          showToast('Staff updated successfully!', 'success');
-        } else {
-          await createStaffAPI(payload);
-          showToast('Staff created successfully!', 'success');
-        }
-        onClose();
-        refresh();
-      } catch (error) {
-        showToast(
-          error?.response?.data?.message || 'Something went wrong!',
-          'error'
-        );
-      }
-    },
+    //   try {
+    //     if (data._id) {
+    //       await updateStaffAPI(data._id, payload);
+    //       showToast('Staff updated successfully!', 'success');
+    //     } else {
+    //       await createStaffAPI(payload);
+    //       showToast('Staff created successfully!', 'success');
+    //     }
+    //     onClose();
+    //     refresh();
+    //   } catch (error) {
+    //     showToast(
+    //       error?.response?.data?.message || 'Something went wrong!',
+    //       'error'
+    //     );
+    //   }
+    // },
+    onSubmit: async (values) => {
+  const permissionPayload = values.permissions.map((p) => {
+    const [module, action] = p.split(':');
+    return { module, action };
+  });
+
+  const payload = {
+    username: values.username,
+    email: values.email,
+    permissions: permissionPayload,
+  };
+
+  // Only include password if it's a new staff (no data._id)
+  if (!data._id && values.password) {
+    payload.password = values.password;
+  }
+
+  try {
+    if (data._id) {
+      await updateStaffAPI(data._id, payload);
+      showToast('Staff updated successfully!', 'success');
+    } else {
+      await createStaffAPI(payload);
+      showToast('Staff created successfully!', 'success');
+    }
+    onClose();
+    refresh();
+  } catch (error) {
+    showToast(
+      error?.response?.data?.message || 'Something went wrong!',
+      'error'
+    );
+  }
+}
+
   });
 
   const togglePermission = (permKey) => {
